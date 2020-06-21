@@ -1,0 +1,3 @@
+include ':mygroovy'
+include ':app'
+rootProject.name = "MyFirstGroovyProject"
