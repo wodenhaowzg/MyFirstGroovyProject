@@ -8,7 +8,10 @@ import com.example.mygroovy.bean.Course
 def checkPath = new File("./")
 // 获取根路径
 println checkPath.absolutePath
-//// 获取当前路径下文件列表
+
+/**
+ * 获取当前路径下文件列表
+ */
 //checkPath.listFiles().each { tempFile ->
 //    println "file : ${tempFile.name}"
 //}
