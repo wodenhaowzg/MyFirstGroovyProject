@@ -1,9 +1,10 @@
 apply plugin: 'java-library'
 apply plugin: 'groovy'
 
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation localGroovy()
+    implementation rootProject.importGradleSource()
 }
 
 sourceCompatibility = "1.8"
