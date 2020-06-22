@@ -28,7 +28,7 @@ allprojects {
  */
 def importGradleSource() {
     // 导入 gradle 源码
-    return fileTree('/Users/wangzhiguo/.gradle/wrapper/dists/gradle-5.6.4-all/ankdp27end7byghfw1q2sw75f/gradle-5.6.4/lib').exclude {
+    return fileTree('../gradle-5.6.4-libs').exclude {
         FileTreeElement fileTreeElement ->
             if (fileTreeElement.name.startsWith('gradle')) {
                 println "target file : ${fileTreeElement.name}"

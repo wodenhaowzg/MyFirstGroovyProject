@@ -5,7 +5,18 @@ apply plugin: 'groovy'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation rootProject.importGradleSource()
+    // 导入 5.6.4 gradle 源码
+//    implementation fileTree(dir: 'libs/gradle-5.6.4-libs', include: ['*.jar'])
+//    implementation rootProject.importGradleSource()
 }
 
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
+
+/**
+ * 创建自定义 task
+ * task 可传递的合法参数，定义在 {@link org.gradle.api.Task} 中，参数不能随便传
+ */
+task importGradleSource() {
+    println 'my first task'
+}
