@@ -1,0 +1,11 @@
+// 通过 apply from 加载脚本之后，每个子 project 都会执行一遍此脚本
+println 'Project 来执行此脚本了 : ' + project
+
+// 定义通用的变量
+project.ext { ExtraPropertiesExtension extension ->
+//    println '打印此闭包的参数 : ' + it  // DefaultExtraPropertiesExtension
+    // groovy 中的 set 方法可以直接<对象.key = value>调用，相当于 temp.set('Android', [...])
+    android = [
+            'compileSdkVersion': 29
+    ]
+}

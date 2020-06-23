@@ -23,15 +23,20 @@ allprojects {
     }
 }
 
+// 所有子 project 都导入这个公共都脚本文件
+subprojects { Project temp ->
+    apply from: '../common.gradle'
+}
+
 /**
  * 在根project定义导入gradle源码的方法，子project可以调用
  */
 def importGradleSource() {
     // 导入 gradle 源码
-    return fileTree('../gradle-5.6.4-libs').exclude {
+    return fileTree('../MyGradleWareHouse/gradle-5.6.4-libs').exclude {
         FileTreeElement fileTreeElement ->
             if (fileTreeElement.name.startsWith('gradle')) {
-                println "target file : ${fileTreeElement.name}"
+//                println "target file : ${fileTreeElement.name}"
                 return false;
             } else {
                 return true
