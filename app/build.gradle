@@ -1,25 +1,139 @@
 apply plugin: 'com.android.application'
 
+// android gradle plugin 更新记录 -> https://developer.android.com/studio/releases/gradle-plugin
+
+// 可用的方法定义在 BaseExtension.java
 android {
     compileSdkVersion project.ext.android.compileSdkVersion
-    buildToolsVersion "30.0.0"
+    buildToolsVersion project.ext.android.buildToolsVersion
 
     defaultConfig {
         applicationId "com.example.myfirstgroovyproject"
-        minSdkVersion 18
-        targetSdkVersion 29
+        minSdkVersion project.ext.android.minSdkVersion
+        targetSdkVersion project.ext.android.targetSdkVersion
         versionCode 1
         versionName "1.0"
-
+        /**
+         * 启用dex文件分包策略，目的是兼容5.0以下系统。
+         */
+//        multiDexEnabled true
+        /**
+         *  定义主包dex中要包含的class，防止类找不到
+         */
+//        multiDexKeepFile file('mainDexList.txt')
+        /**
+         * 移除用于不同设备配置的备用资源，指定要保留都资源。
+         * 备用资源列表:
+         * https://developer.android.com/guide/topics/resources/providing-resources.html#AlternativeResources
+         */
+        resConfigs 'en'  // 只保留英文语言资源
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    /**
+     * BuildType_Decorated{* name=release,
+     * debuggable=false, // 此构建类型是否应生成可调试的apk。
+     * testCoverageEnabled=false,
+     * jniDebuggable=false, // 是否将此构建类型配置为生成具有可调试本机代码的APK。
+     * pseudoLocalesEnabled=false,
+     * renderscriptDebuggable=false,
+     * renderscriptOptimLevel=3,
+     * minifyEnabled=false,
+     * zipAlignEnabled=true,
+     * signingConfig=null,
+     * embedMicroApp=true,  // 是否应使用此构建类型将链接的Android Wear应用嵌入变体中。
+     * mBuildConfigFields={},
+     * mResValues={},
+     * mProguardFiles=[ /Users/wangzhiguo/Downloads/Learns/MyGithubs/Android/MyFirstGroovyProject/app/build/intermediates/proguard-files/proguard-android-optimize.txt-3.6.3,
+     *                  /Users/wangzhiguo/Downloads/Learns/MyGithubs/Android/MyFirstGroovyProject/app/proguard-rules.pro],
+     * mConsumerProguardFiles=[],
+     * mManifestPlaceholders={}}*/
     buildTypes {
-        release {
-            minifyEnabled false
+        debug {
+        }
+
+        release { buildInfo ->
+            /**
+             *  启用无用代码的检测和删除工作，缩减apk体积。从 gradle 3.4.0 插件起，默认启用 R8 代码压缩器，不用再添加 android.enableR8 = true
+             *  R8 集成了 ProGuard 和 D8 的功能，主要实现三个功能：
+             *      压缩：从代码中移除无用的类、段、方法等。
+             *      优化：使代码在指令级更小，更高效。
+             *      混淆：使用简短无意义的名称重命名代码里剩余的类，字段和方法。
+             *  代码压缩器迭代过程，这里以正式启用为准
+             *  dex -> D8(3.1.0) -> R8(3.4.0)
+             *  代码缩减的详细介绍
+             *  https://developer.android.com/studio/build/shrink-code?hl=zh-cn
+             *
+             *  使用有风险，以下情况可能会错误都移除代码
+             *      当您的应用通过 Java 原生接口 (JNI) 调用方法时
+             *      当您的应用在运行时查询代码时（如使用反射）
+             */
+            minifyEnabled true
+            /**
+             * 资源缩减，依赖于代码缩减。当代码缩减没有问题时，再尝试资源缩减。
+             * 资源缩减的详细介绍
+             * https://developer.android.com/studio/build/shrink-code?hl=zh-cn
+             */
+            shrinkResources true
+            /**
+             * ProGuard 配置文件，可与 R8
+             */
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            /**
+             * 是一种归档对齐工具，其目的是要确保所有未压缩数据的开头均相对于文件开头部分执行特定的对齐，这样做的好处是可以减少运行应用时消耗的 RAM 容量。
+             * 详细介绍
+             * https://developer.android.com/studio/command-line/zipalign
+             */
+            zipAlignEnabled true // 默认是启用的，这里只是演示介绍
+
+            println buildInfo.toString() // 打印所有属性的状态
+        }
+
+        /**
+         * 自定义构建版本类型
+         */
+        customBuildType {
+            /**
+             * 拷贝 release 版本类型所用的属性
+             */
+            initWith release {
+                println "customBuildType"
+            }
         }
     }
+
+    /*
+     AndroidSourceSet.java
+     每个资源文件夹都支持使用多个
+     java, jni, jniLibs, manifest, renderscript, res, resources, setRoot, shaders
+     */
+    sourceSets {
+        main {
+            // 不知道默认的路径，就将它打印出来
+            println 'res src path : ' + res.srcDirs
+            // 不知道相对路径该怎么写，就将当前路径打印出来
+            println 'res srcDirs root path : ' + file('.').absolutePath
+            // 添加新的文件夹 res-values，需要手动创建
+            res.srcDirs = ['src/main/res-values', 'src/main/res']
+        }
+    }
+
+    dexOptions {
+        maxProcessCount 8 //设置运行 dex-in-process 时要使用的最大线程数量。默认值为 4。
+        preDexLibraries = false
+    }
+
+    def startTime;
+    project.tasks.each { temp ->
+        temp.doFirst {
+            startTime = System.currentTimeMillis();
+        }
+
+        temp.doLast {
+            println "watch task ${temp}, spend time : " + (System.currentTimeMillis() - startTime)
+        }
+    }
+
 }
 
 /**
@@ -33,11 +147,10 @@ android {
  */
 dependencies { dependencyHandler ->
     implementation fileTree(dir: "libs", include: ["*.jar"])
-//    implementation files('/Users/wangzhiguo/.gradle/caches/modules-2/files-2.1/com.android.tools.build/gradle-api/3.6.3/2dc5166f752ffd73b5fffc9400e60adf839b84b7/gradle-api-3.6.3.jar')
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.multidex:multidex:2.0.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation project(':mygroovy')
-
+//    implementation project(':mygroovy')
 }

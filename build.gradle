@@ -21,6 +21,15 @@ allprojects {
         maven { url "https://maven.aliyun.com/repository/public" }
         maven { url "https://maven.aliyun.com/repository/gradle-plugin" }
     }
+
+    //
+    project.beforeEvaluate {
+        println 'wzgtest beforeEvaluate... '
+    }
+
+    project.afterEvaluate {
+        println 'wzgtest afterEvaluate... '
+    }
 }
 
 // 所有子 project 都导入这个公共都脚本文件
@@ -43,7 +52,6 @@ def importGradleSource() {
             }
     }
 }
-
 
 task clean(type: Delete) {
     delete rootProject.buildDir
