@@ -27,7 +27,11 @@ android {
          * https://developer.android.com/guide/topics/resources/providing-resources.html#AlternativeResources
          */
         resConfigs 'en'  // 只保留英文语言资源
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            // 设置支持的SO库架构
+            abiFilters 'armeabi-v7a'//, 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
+        }
     }
 
     /**
@@ -118,22 +122,46 @@ android {
         }
     }
 
-    dexOptions {
-        maxProcessCount 8 //设置运行 dex-in-process 时要使用的最大线程数量。默认值为 4。
-        preDexLibraries = false
+    lintOptions {
+        // If set to true, turns off analysis progress reporting by lint.
+        quiet true
+        // if set to true (default), stops the build if errors are found.
+        abortOnError false
+        // Turns off checks for the issue IDs you specify.
+        disable 'MissingTranslation'
+        // if true, only report errors.
+        ignoreWarnings true
     }
 
-    def startTime;
-    project.tasks.each { temp ->
-        temp.doFirst {
-            startTime = System.currentTimeMillis();
-        }
-
-        temp.doLast {
-            println "watch task ${temp}, spend time : " + (System.currentTimeMillis() - startTime)
-        }
+    dexOptions { options ->
+        /**
+         * 可用于dex的最大并发进程数，默认值是 4，此选项影响内存占用
+         * Total Memory = maxProcessCount * javaMaxHeapSize
+         */
+        maxProcessCount 4
+        /**
+         * 设置运行 dex-in-process 时要使用的最大线程数量。默认值为 4。
+         */
+        threadCount 8
+        /**
+         * dex构建缓存，可以改善增量编译，但可以影响全量编译速度
+         */
+        preDexLibraries true
+        /**
+         * 启用 jumboMode 模式，该模式可以突破字符串引用数量的限制，让 DEX 文件中能够包含更多数量的字符串.
+         * 默认字符串使用1个16位的寄存器存储，可以存储2^16次方的数量。启用 jumboMode 模式后，改为 2 个寄存器存储，
+         * 可以存储 2^32位的数量。
+         * 但启用这个模式会影响构建速度。
+         *
+         * const-string vAA, string@BBBB
+         * const-string/jumbo vAA, string@BBBBBBBB
+         * vBBBB 是源寄存器，取值范围为 v0 - v65535，即是一个16位的寄存器
+         * 详细解释：
+         * https://source.android.com/devices/tech/dalvik/dalvik-bytecode.html
+         * https://www.coder.work/article/1142621
+         */
+//        jumboMode true
     }
-
 }
 
 /**
@@ -150,7 +178,5 @@ dependencies { dependencyHandler ->
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'androidx.multidex:multidex:2.0.1'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 //    implementation project(':mygroovy')
 }
